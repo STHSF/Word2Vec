@@ -1,6 +1,6 @@
 package twc
 
-import breeze.linalg.Vector
+import breeze.linalg._
 import com.kunyandata.nlpsuit.util.{JsonConfig, KunyanConf, TextPreprocessing}
 import com.kunyandata.nlpsuit.wordExtraction.TextRank
 import org.apache.spark.mllib.feature.Word2VecModel

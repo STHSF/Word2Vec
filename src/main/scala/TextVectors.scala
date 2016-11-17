@@ -121,7 +121,7 @@ object TextVectors {
       //textRank, 使用textRank提取关键词（实体词抽取）
       val keywords = TextRank.run("exact", 10, seg.toList, 20, 50, 0.85f)
       val keywordsFilter = keywords.toArray.filter(word => word._1.length >= 2)
-//      println(s"[$label] " + keywordsFilter.toList)
+      //      println(s"[$label] " + keywordsFilter.toList)
 
       (label, keywordsFilter)
     })
@@ -240,7 +240,7 @@ object TextVectors {
     val sc = new SparkContext(conf)
 
     // 保存在hdfs上的模型的路径
-     val dir = "hdfs://master:9000/home/word2vec/model-10-100-20/2016-08-16-word2VectorModel"
+    val dir = "hdfs://master:9000/home/word2vec/model-10-100-20/2016-08-16-word2VectorModel"
     // val dir = "hdfs://master:9000/home/word2vec/model20160830-10-100-20/2016-08-31-word2VectorModel"
     // val dir = "hdfs://master:9000/home/word2vec/20161008_10_200_2_1/2016-11-08-word2VectorModel"
 
@@ -254,7 +254,7 @@ object TextVectors {
     // word2vec model test
     val synonyms = model.findSynonyms("共产党", 1)
     for((synonym, cosineSimilarity ) <- synonyms){
-    // println(s"$synonym   $cosineSimilarity")  // AQSW
+      // println(s"$synonym   $cosineSimilarity")  // AQSW
       println(s"$synonym")
     }
 
