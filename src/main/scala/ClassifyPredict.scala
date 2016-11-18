@@ -20,7 +20,7 @@ object ClassifyPredict {
     val conf = new SparkConf().setAppName("textVectors").setMaster("local")
     val sc = new SparkContext(conf)
 
-    val jsonPath = "/Users/li/workshop/NaturalLanguageProcessing/src/main/scala/meachinelearning/word2vec/twc/W2VJsonConf.json"
+    val jsonPath = "/home/zhangxin/work/workplace_scala/Sentiment/src/main/scala/classificationW2V/W2VJsonConf.json"
 
     JSONUtil.initConfig(jsonPath)
 
@@ -31,7 +31,8 @@ object ClassifyPredict {
     val w2vModel = Word2VecModel.load(sc, word2vecModelPath)
 
     // load classify model
-    val classifyModelPath = JSONUtil.getValue("classify", "classifymodelpath")
+//    val classifyModelPath = JSONUtil.getValue("classifyw2v", "modelParentPath_SVM")
+    val classifyModelPath = "/home/zhangxin/work/workplace_scala/Data/classificaiton_model/32_正式可用_SVM/保险.model"
     val classifyModel = SVMModel.load(sc, classifyModelPath)
 
     // stopWords load
