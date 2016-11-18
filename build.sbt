@@ -1,6 +1,4 @@
-mainClass in (Compile, packageBin) := Some("calssificationWV.training")
-
-name := "Sentiment"
+name := "NaturalLanguageProcessing"
 
 version := "1.0"
 

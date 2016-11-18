@@ -8,10 +8,6 @@ import utils.JSONUtil
   */
 object ClassifyPredict {
 
-
-
-
-
   def main(args: Array[String]) {
 
     val conf = new SparkConf().setAppName("textVectors").setMaster("local")
@@ -49,8 +45,15 @@ object ClassifyPredict {
 
     val predictData = predictSet.map{row => {
 
-      val startTime = System.currentTimeMillis()
-      val point = TextVectors.textVectorsWithWeight(row, w2vModel, modelSize, isModel)
+      // 去停 去标点等
+
+      //
+      TextVectors.textVectorsWithWeight(row, w2vModel, modelSize, isModel)
+    }}
+
+    /** 对测试数据集使用训练模型进行分类预测 */
+    // classifyModel.clearThreshold()
+    val predictionAndLabel = predictData.map{ point => {
       val predictionFeature = classifyModel.predict(point.features)
       println(predictionFeature+": "+row._1)
       val stopTime = System.currentTimeMillis() - startTime
