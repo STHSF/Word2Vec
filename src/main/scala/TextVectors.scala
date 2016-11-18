@@ -16,6 +16,18 @@ import scala.collection.mutable
   */
 object TextVectors {
 
+
+  //获得标签编号
+  private def getLabel(label: String): Double = {
+    label match {
+      case "neg" => return 1.0
+      case "neg" => return 1.0
+      case "neg" => return 1.0
+      case "neg" => return 1.0
+    }
+  }
+
+
   /**
     * 通过生成的词向量库来导入文本空间向量, 文本中每个单词的词向量的加权平均。
     *
@@ -98,48 +110,70 @@ object TextVectors {
   /**
     * 对已经分词的文档进行特征处理，并生成labelpoint的格式, 平衡集, 考虑关键词权重
     *
-    * @param docs 需要处理的文本
+    * @param doc 需要处理的文本
     * @param model 词向量模型
     * @param modelSize 词向量模型中词向量的维度
     * @param isModel 是否是词向量模型
     * @return
     */
-  def textVectorsWithWeight(docs:RDD[String],
-                            model: Word2VecModel,
-                            modelSize:Int,
-                            isModel:Boolean): RDD[LabeledPoint] = {
+  def singleTextVectorsWithWeight(doc:String,
+                                  model: Word2VecModel,
+                                  modelSize:Int,
+                                  isModel:Boolean): LabeledPoint = {
 
-    val docsTemp = docs.map(doc  => {
 
-      val temp = doc.split("\t")
-      val label = temp(0)
-      // 文档已经分词
-      val seg = temp(1).split(",")
-      // 文档未经分词
-      // val segg = AnsjAnalyzer.cutNoTag(temp(1))
+    val temp = doc.split("\t")
+    val label = temp(0)
+    val seg = temp(1).split(",")
 
-      //textRank, 使用textRank提取关键词（实体词抽取）
-      val keywords = TextRank.run("exact", 10, seg.toList, 20, 50, 0.85f)
-      val keywordsFilter = keywords.toArray.filter(word => word._1.length >= 2)
-      //      println(s"[$label] " + keywordsFilter.toList)
+    //textRank, 使用textRank提取关键词（实体词抽取）
+    val keywords = TextRank.run("exact", 10, seg.toList, 20, 50, 0.85f)
+    val keywordsFilter = keywords.toArray.filter(word => word._1.length >= 2)
+    //      println(s"[$label] " + keywordsFilter.toList)
 
-      (label, keywordsFilter)
-    })
-
-    println(s"[1.0] ${docsTemp.map(_._1.equals("1.0")).collect().length}")
-    println(s"[0.0] ${docsTemp.map(_._1.equals("0.0")).collect().length}")
+    val tmp = (label, keywordsFilter)
 
     if (isModel) {
 
-      val result = docsTemp.map(doc => {
+      val resultTemp = doc2vecModelWithWeight(tmp._2, model, modelSize)
+      val vector = Vectors.dense(resultTemp)
+      val label = tmp._1.toDouble
 
-        val resultTemp = doc2vecModelWithWeight(doc._2, model, modelSize)
-        val vector = Vectors.dense(resultTemp)
-        val label = doc._1.toDouble
-        LabeledPoint(label, vector)
-      })
+      return LabeledPoint(label, vector)
 
-      return result
+    } else {
+
+      return null
+    }
+  }
+
+  /**
+    * 对已经分词的文档进行特征处理，并生成labelpoint的格式, 平衡集, 考虑关键词权重
+    *
+    * @param doc 需要处理的文本
+    * @param model 词向量模型
+    * @param modelSize 词向量模型中词向量的维度
+    * @param isModel 是否是词向量模型
+    * @return
+    */
+  def textVectorsWithWeight(doc:(Double, Array[String]),
+                            model: Word2VecModel,
+                            modelSize:Int,
+                            isModel:Boolean): LabeledPoint = {
+    val label = doc._1
+    val seg = doc._2
+
+    //textRank, 使用textRank提取关键词（实体词抽取）
+    val keywords = TextRank.run("exact", 10, seg.toList, 20, 50, 0.85f)
+    val keywordsFilter = keywords.toArray.filter(word => word._1.length >= 2)
+    //      println(s"[$label] " + keywordsFilter.toList)
+
+    if (isModel) {
+
+      val resultTemp = doc2vecModelWithWeight(keywordsFilter, model, modelSize)
+      val vector = Vectors.dense(resultTemp)
+      return LabeledPoint(label, vector)
+
     } else {
 
       return null

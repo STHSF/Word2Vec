@@ -100,9 +100,9 @@ object AnsjAnalyzer {
     */
   def cutTag(sentence: String, option: Int): Array[String] = {
 
-    val value = new Value("济南\tn")
-
-    Library.insertWord(UserDefineLibrary.ambiguityForest, value)
+//    val value = new Value("济南 \nn")
+//
+//    Library.insertWord(UserDefineLibrary.ambiguityForest, value)
 
     //切词
     val sent = ToAnalysis.parse(sentence)

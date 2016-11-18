@@ -1,10 +1,7 @@
 import org.apache.spark.mllib.classification.SVMModel
 import org.apache.spark.mllib.feature.Word2VecModel
-import org.apache.spark.{SparkContext, SparkConf}
-import org.apache.spark.mllib.evaluation.MulticlassMetrics
-import org.apache.spark.mllib.regression.LabeledPoint
-import org.apache.spark.rdd.RDD
-import utils.{AnsjAnalyzer, JSONUtil}
+import org.apache.spark.{SparkConf, SparkContext}
+import utils.JSONUtil
 
 /**
   * Created by li on 2016/10/17.
@@ -12,49 +9,7 @@ import utils.{AnsjAnalyzer, JSONUtil}
 object ClassifyPredict {
 
 
-  /**
-    * 准确度统计分析
-    *
-    * @param predictionAndLabel
-    */
-  def acc(predictionAndLabel: RDD[(Double, Double)],
-          predictDataRdd: RDD[LabeledPoint]): Unit = {
 
-    //统计分类准确率
-    val testAccuracy = 1.0 * predictionAndLabel.filter(x => x._1 == x._2).count() / predictDataRdd.count()
-    println("testAccuracy：" + testAccuracy)
-
-    val metrics = new MulticlassMetrics(predictionAndLabel)
-    println("Confusion matrix:" + metrics.confusionMatrix)
-
-    // Precision by label
-    val label = metrics.labels
-    label.foreach { l =>
-      println(s"Precision($l) = " + metrics.precision(l))
-    }
-
-    // Recall by label
-    label.foreach { l =>
-      println(s"Recall($l) = " + metrics.recall(l))
-    }
-
-    // False positive rate by label
-    label.foreach { l =>
-      println(s"FPR($l) = " + metrics.falsePositiveRate(l))
-    }
-
-    // F-measure by label
-    label.foreach { l =>
-      println(s"F1-Score($l) = " + metrics.fMeasure(l))
-    }
-
-    // val roc = metrics.roc
-
-    // // AUROC
-    // val auROC = metrics.areaUnderROC
-    // println("Area under ROC = " + auROC)
-
-  }
 
 
   def main(args: Array[String]) {
@@ -66,10 +21,10 @@ object ClassifyPredict {
 
     JSONUtil.initConfig(jsonPath)
 
+    // load word2vec model
     val word2vecModelPath = JSONUtil.getValue("w2v", "w2vmodelPath")
     val modelSize = JSONUtil.getValue("w2v", "w2vmodelSize").toInt
     val isModel = JSONUtil.getValue("w2v", "isModel").toBoolean
-    // load word2vec model
     val w2vModel = Word2VecModel.load(sc, word2vecModelPath)
 
     // load classify model
@@ -78,28 +33,36 @@ object ClassifyPredict {
 
     // 构建测试集labeledpoint格式
     val predictSetPath = "/Users/li/workshop/DataSet/trainingSets/test"
+    // val predictSetPath = "/Users/li/workshop/DataSet/111.txt"
+
+
     val predictSet = DataPrepare.readData(predictSetPath)
-    val predictSetRdd = sc.parallelize(predictSet)
-
+      .map { row => val temp = row.split("\t")
+        (temp(0).toDouble, temp(1).split(","))
+      }
+    val startTime = System.currentTimeMillis()
     // 对于单篇没有分词的文章
-    val predictSetVec = predictSetRdd.map(row => {
-      1.0 + "\t" + AnsjAnalyzer.cutNoTag(row)
-    })
-    val predictDataRdd = TextVectors.textVectorsWithWeight(predictSetVec, w2vModel, modelSize, isModel).cache()
+//    val splitData = DataPrepare.docCut((1.0, predictSet))
+//    val doVec = DataPrepare.singleLabeledDoc(1.0, splitData)
+//    val predictData = TextVectors.singleTextVectorsWithWeight(doVec, w2vModel, modelSize, isModel)
 
-    // val predictDataRdd = TextVectors.textVectorsWithWeight(predictSetRdd, w2vModel, modelSize, isModel).cache()
+    val predictData = predictSet.map{row => {
+
+      TextVectors.textVectorsWithWeight(row, w2vModel, modelSize, isModel)
+    }}
 
     /** 对测试数据集使用训练模型进行分类预测 */
     // classifyModel.clearThreshold()
-    // Compute raw scores on the test set.
-    val predictionAndLabel = predictDataRdd.map{ point => {
+    val predictionAndLabel = predictData.map{ point => {
       val predictionFeature = classifyModel.predict(point.features)
+
       (predictionFeature, point.label)
     }}
+    predictionAndLabel.foreach(println)
 
-    // 准确度统计分析
-    acc(predictionAndLabel, predictDataRdd)
-    //predictionAndLabel.foreach(println)
+    val stopTime = System.currentTimeMillis() - startTime
+    println(s"耗时: $stopTime")
+
     sc.stop()
   }
 }

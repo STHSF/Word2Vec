@@ -1,5 +1,6 @@
 import java.io.File
 
+import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.feature.Word2VecModel
 import org.apache.spark.{SparkContext, SparkConf}
 import org.apache.spark.mllib.classification.{SVMWithSGD, SVMModel}
@@ -13,7 +14,60 @@ import utils.{DirectoryUtil, JSONUtil}
   */
 object ClassifyModel {
 
+  /**
+    * 准确度统计分析
+    *
+    * @param predictionAndLabel
+    */
+  def acc(predictionAndLabel: RDD[(Double, Double)],
+          predictDataRdd: RDD[LabeledPoint]): Unit = {
 
+    //统计分类准确率
+    val testAccuracy = 1.0 * predictionAndLabel.filter(x => x._1 == x._2).count() / predictDataRdd.count()
+    println("testAccuracy：" + testAccuracy)
+
+    val metrics = new MulticlassMetrics(predictionAndLabel)
+    println("Confusion matrix:" + metrics.confusionMatrix)
+
+    // Precision by label
+    val label = metrics.labels
+    label.foreach { l =>
+      println(s"Precision($l) = " + metrics.precision(l))
+    }
+
+    // Recall by label
+    label.foreach { l =>
+      println(s"Recall($l) = " + metrics.recall(l))
+    }
+
+    // False positive rate by label
+    label.foreach { l =>
+      println(s"FPR($l) = " + metrics.falsePositiveRate(l))
+    }
+
+    // F-measure by label
+    label.foreach { l =>
+      println(s"F1-Score($l) = " + metrics.fMeasure(l))
+    }
+
+    // val roc = metrics.roc
+
+    // // AUROC
+    // val auROC = metrics.areaUnderROC
+    // println("Area under ROC = " + auROC)
+
+  }
+
+  // 交叉验证
+  def crossDef: Unit = {
+
+  }
+
+  /**
+    * 分类模型
+    * @param trainDataRdd
+    * @return
+    */
   def classify(trainDataRdd: RDD[LabeledPoint]): SVMModel = {
 
     /** NativeBayes训练模型 */
@@ -62,7 +116,6 @@ object ClassifyModel {
     val modelSize = JSONUtil.getValue("w2v", "w2vmodelSize").toInt
     val isModel = JSONUtil.getValue("w2v", "isModel").toBoolean
 
-    //  val word2vecModelPath = "hdfs://master:9000/home/word2vec/classifyModel-10-100-20/2016-08-16-word2VectorModel"
     val w2vModel = Word2VecModel.load(sc, word2vecModelPath)
 
     // 构建训练集的labeledpoint格式
@@ -71,23 +124,26 @@ object ClassifyModel {
     val trainSetPath = "/Users/li/workshop/DataSet/trainingSets/机械"
 
     val trainSet = DataPrepare.readData(trainSetPath)
-    val trainSetRdd = sc.parallelize(trainSet).cache()
-    //val trainSetRdd = sc.textFile(trainSetPath)
+      .map { row =>
+        val temp = row.split("\t")
+        (temp(0).toDouble, temp(2).split(","))
+    }
 
-    // val trainSetVec = trainSetRdd.map( row => {
-    // val x = row.split("\t")
-    //  (x(0), x(1).split(","))})  // 在文章进行分词的情况下，用逗号隔开
-    //  //(x(0), AnsjAnalyzer.cutNoTag(x(1)})   // 如果没有分词，就调用ansj进行分词
-    //  .map(row => (row._1.toDouble, DataPrepare.docVec(w2vModel, row._2)))
+    val trainData = trainSet.map{row =>{
+      TextVectors.textVectorsWithWeight(row, w2vModel, modelSize, isModel)
+    }}
 
-    val trainDataRdd = TextVectors.textVectorsWithWeight(trainSetRdd, w2vModel, modelSize, isModel).cache()
-
+    val trainDataRdd = sc.parallelize(trainData)
     val classifyModel = classify(trainDataRdd)
 
     val classifyModelPath = JSONUtil.getValue("classify", "classifymodelpath")
     DirectoryUtil.deleteDir(new File(classifyModelPath))
     classifyModel.save(sc, classifyModelPath)
+
+    // 准确度统计分析
+    //predictionAndLabel.foreach(println)
     println("分类模型保存完毕。")
 
+    sc.stop()
   }
 }
