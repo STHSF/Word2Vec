@@ -120,14 +120,14 @@ object ClassifyModel {
 
     // 构建训练集的labeledpoint格式
     // val trainSetPath = "/Users/li/workshop/DataSet/trainingsetUnbalance/BXX.txt"
-    // val trainSetPath = "/Users/li/workshop/DataSet/trainingSets/计算机"
-    val trainSetPath = "/Users/li/workshop/DataSet/trainingSets/机械"
+     val trainSetPath = "/Users/li/workshop/DataSet/trainingSets/计算机"
+//    val trainSetPath = "/Users/li/workshop/DataSet/trainingSets/机械"
 
     val trainSet = DataPrepare.readData(trainSetPath)
       .map { row =>
         val temp = row.split("\t")
-        (temp(0).toDouble, temp(2).split(","))
-    }
+        (temp(0).toDouble, temp(1).split(","))
+      }
 
     val trainData = trainSet.map{row =>{
       TextVectors.textVectorsWithWeight(row, w2vModel, modelSize, isModel)

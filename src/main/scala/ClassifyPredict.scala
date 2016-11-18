@@ -8,10 +8,6 @@ import utils.JSONUtil
   */
 object ClassifyPredict {
 
-
-
-
-
   def main(args: Array[String]) {
 
     val conf = new SparkConf().setAppName("textVectors").setMaster("local")
@@ -48,6 +44,9 @@ object ClassifyPredict {
 
     val predictData = predictSet.map{row => {
 
+      // 去停 去标点等
+
+      //
       TextVectors.textVectorsWithWeight(row, w2vModel, modelSize, isModel)
     }}
 
