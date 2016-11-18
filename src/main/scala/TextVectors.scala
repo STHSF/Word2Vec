@@ -113,38 +113,22 @@ object TextVectors {
     * @param doc 需要处理的文本
     * @param model 词向量模型
     * @param modelSize 词向量模型中词向量的维度
-    * @param isModel 是否是词向量模型
+    * @param isTraining 是否是词向量模型
     * @return
     */
-  def singleTextVectorsWithWeight(doc:String,
+  def singleTextVectorsWithWeight(doc:Array[String],
                                   model: Word2VecModel,
                                   modelSize:Int,
-                                  isModel:Boolean): LabeledPoint = {
-
-
-    val temp = doc.split("\t")
-    val label = temp(0)
-    val seg = temp(1).split(",")
+                                  isTraining:Boolean): Array[Double] = {
 
     //textRank, 使用textRank提取关键词（实体词抽取）
-    val keywords = TextRank.run("exact", 10, seg.toList, 20, 50, 0.85f)
+    val keywords = TextRank.run("exact", 10, doc.toList, 20, 50, 0.85f)
     val keywordsFilter = keywords.toArray.filter(word => word._1.length >= 2)
     //      println(s"[$label] " + keywordsFilter.toList)
+    val resultTemp = doc2vecModelWithWeight(keywordsFilter, model, modelSize)
+    val vector = Vectors.dense(resultTemp).toArray
 
-    val tmp = (label, keywordsFilter)
-
-    if (isModel) {
-
-      val resultTemp = doc2vecModelWithWeight(tmp._2, model, modelSize)
-      val vector = Vectors.dense(resultTemp)
-      val label = tmp._1.toDouble
-
-      return LabeledPoint(label, vector)
-
-    } else {
-
-      return null
-    }
+    vector
   }
 
   /**
