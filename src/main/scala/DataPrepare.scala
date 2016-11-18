@@ -50,6 +50,32 @@ object DataPrepare {
   }
 
   /**
+    * 去除分词结果中的标点符号和停用词
+    *
+    * @param content 分词结果
+    * @param stopWords 停用词
+    * @return 返回一个元素为String的Array
+    */
+  def removeStopWords(content: Array[String], stopWords:Array[String]): Array[String] = {
+
+    if (content != null) {
+
+      var result = content.toBuffer
+      stopWords.foreach(stopWord => {
+
+        if (result.contains(stopWord)){
+          result = result.filterNot(_ == stopWord)
+        }
+
+      })
+
+      result.toArray
+    } else {
+      null
+    }
+  }
+
+  /**
     * 测试代码
     */
   def dataPrepareTest(): Unit = {

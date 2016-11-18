@@ -1,12 +1,19 @@
 import org.apache.spark.mllib.classification.SVMModel
 import org.apache.spark.mllib.feature.Word2VecModel
+import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.{SparkConf, SparkContext}
-import utils.JSONUtil
+import utils.{AnsjAnalyzer, JSONUtil}
 
 /**
   * Created by li on 2016/10/17.
   */
 object ClassifyPredict {
+
+  def predict: Unit ={
+
+  }
+
+
 
   def main(args: Array[String]) {
 
@@ -28,57 +35,37 @@ object ClassifyPredict {
     val classifyModelPath = "/home/zhangxin/work/workplace_scala/Data/classificaiton_model/32_正式可用_SVM/保险.model"
     val classifyModel = SVMModel.load(sc, classifyModelPath)
 
+    // stopWords load
+    //    val stopWordsPath = JSONUtil.getValue("kunyan", "stopwords")
+    val stopWordsPath = "/Users/li/workshop/DataSet/stop_words_CN"
+    val stopWords = sc.textFile(stopWordsPath).collect()
+
     // 构建测试集labeledpoint格式
-    val predictSetPath = "/home/zhangxin/work/workplace_scala/Data/test"
-    // val predictSetPath = "/Users/li/workshop/DataSet/111.txt"
+    // val predictSetPath = "/Users/li/workshop/DataSet/trainingSets/test"
+    val predictSetPath = "/Users/li/workshop/DataSet/test/"
 
-
-    val predictSet = DataPrepare.readData(predictSetPath)
-      .map { row => val temp = row.split("\t")
-        (temp(0).toDouble, temp(1).split(","))
-      }
-
-    // 对于单篇没有分词的文章
-//    val splitData = DataPrepare.docCut((1.0, predictSet))
-//    val doVec = DataPrepare.singleLabeledDoc(1.0, splitData)
-//    val predictData = TextVectors.singleTextVectorsWithWeight(doVec, w2vModel, modelSize, isModel)
-
-    val predictData = predictSet.map{row => {
-
-      // 去停 去标点等
-
-      //
-      TextVectors.textVectorsWithWeight(row, w2vModel, modelSize, isModel)
-    }}
+    val predictSet = sc.wholeTextFiles(predictSetPath).collect()
 
     /** 对测试数据集使用训练模型进行分类预测 */
-    // classifyModel.clearThreshold()
-    val predictionAndLabel = predictData.map{ point => {
-      val predictionFeature = classifyModel.predict(point.features)
-      println(predictionFeature+": "+row._1)
+    val prediction = predictSet.map{row =>
+
+      val startTime = System.currentTimeMillis()
+
+      // 去停 去标点等
+      val stopWordsRemoved = DataPrepare.removeStopWords(AnsjAnalyzer.cutTag(row._2, 0), stopWords)
+
+      // textRank word2vec
+      val point = TextVectors.singleTextVectorsWithWeight(stopWordsRemoved, w2vModel, modelSize, isModel)
+
+      // predict model
+      val predictionFeature = classifyModel.predict(Vectors.dense(point))
+
       val stopTime = System.currentTimeMillis() - startTime
-      println(s"耗时: $stopTime \n")
+      println(s"""耗时: $stopTime""")
+      println(predictionFeature)
+    }
 
-    }}
-
-
-
-//    val predictData = predictSet.map{row => {
-//
-//      TextVectors.textVectorsWithWeight(row, w2vModel, modelSize, isModel)
-//    }}
-//
-//    /** 对测试数据集使用训练模型进行分类预测 */
-//    // classifyModel.clearThreshold()
-//    val predictionAndLabel = predictData.map{ point => {
-//      val predictionFeature = classifyModel.predict(point.features)
-//
-//      (predictionFeature, point.label)
-//    }}
-//    predictionAndLabel.foreach(println)
-//
-//    val stopTime = System.currentTimeMillis() - startTime
-//    println(s"耗时: $stopTime")
+    // classifyModel.clearThreshold()
 
     sc.stop()
   }
