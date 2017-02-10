@@ -3,6 +3,7 @@ package textrank
 import org.apache.spark.{SparkConf, SparkContext}
 import org.graphstream.graph.implementations.SingleGraph
 import org.graphstream.graph.{Edge, Node}
+import utils.JSONUtil
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -11,7 +12,7 @@ import scala.collection.mutable.ListBuffer
   * Created by li on 16/6/24.
   * 使用TextRank进行关键词提取
   */
-object KeywordExtractor {
+object KeywordExtracto {
 
   /**
     * 构建候选关键词图
@@ -157,24 +158,24 @@ object KeywordExtractor {
   */
 object test {
 
-  val conf = new SparkConf().setAppName("text").setMaster("local")
-  val sc = new SparkContext(conf)
-
   def main(args: Array[String]) {
+    val conf = new SparkConf().setAppName("textRank").setMaster("local")
+    val sc = new SparkContext(conf)
 
-    val file = sc.textFile("/Users/li/kunyan/DataSet/textRankTestData/textRankTest2.txt")
+    val textRankTest = JSONUtil.getValue("textrank", "testpath")
+    val file = sc.textFile(textRankTest)
     val doc = new ListBuffer[(String)]
-    file.foreach {
-      word =>
-        val list = word.split(",").foreach(x => doc.+=(x))
-    }
 
-    val keyWordList = KeywordExtractor.run("url", 5, doc, 3, 100, 0.85f)
+    val words = file.flatMap(str => str.split(",")).collect().map(word => doc.+=(word))
+
+    println("doc的长度" + doc.size)
+    val keyWordList = KeywordExtracto.run("url", 5, doc, 5, 100, 0.85f)
 
     keyWordList.foreach {
       x => println(x._1, x._2)
     }
+
+    sc.stop()
   }
 
-  sc.stop()
 }

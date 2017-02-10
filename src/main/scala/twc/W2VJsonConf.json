@@ -2,16 +2,19 @@
   "kunyan": {
     "ip": "61.147.114.88",
     "port": "16003",
-    "stopwords": "/home/zhangxin/文档/stopwords.txt"
+    "stopwords": "/Users/li/workshop/DataSet/stop_words_CN"
   },
   "w2v": {
-    "w2vmodelPath": "hdfs://61.147.114.85:9000/home/word2vec/model-10-100-20/2016-08-16-word2VectorModel",
+    "w2vmodelPath": "hdfs://61.147.114.85:9000/user/zhangxin/word2vec/2016-08-16-word2VectorModel",
     "w2vmodelSize": "100",
-    "isModel":"true"
+    "isModel": "true"
   },
   "classifyw2v": {
-    "modelParentPath_SVM": "/home/zhangxin/work/workplace_scala/Data/classificaiton_model/30_正式可用_SVM/",
-    "modelParentPath_bayes":"/home/zhangxin/work/workplace_scala/Data/classificaiton_model/30_正式可用_bayes/",
-    "dataSets":"/home/zhangxin/work/workplace_scala/Data/trainingSets (30)/"
+    "modelParentPath_SVM": "/Users/li/workshop/MyRepository/Word2Vec/src/main/scala/classifymodel",
+    "modelParentPath_bayes": "/home/zhangxin/work/workplace_scala/Data/classificaiton_model/30_正式可用_bayes/",
+    "dataSets": "/home/zhangxin/work/workplace_scala/Data/trainingSets (30)/"
+  },
+  "textrank": {
+    "testpath": "/Users/li/workshop/DataSet/textRankTestData/textRankTest2.txt"
   }
 }

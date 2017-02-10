@@ -62,7 +62,8 @@ object SVM {
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf().setAppName("W2V").setMaster("local")
     val sc = new SparkContext(conf)
-    val jsonPath = "/home/zhangxin/work/workplace_scala/Sentiment/src/main/scala/classificationW2V/W2VJsonConf.json"
+//    val jsonPath = "/home/zhangxin/work/workplace_scala/Sentiment/src/main/scala/classificationW2V/W2VJsonConf.json"
+    val jsonPath = "~/W2VJsonConf.json"
 
     val (kunyan, stopWords, w2vModel, classificationModels) = init(sc, jsonPath)
 
