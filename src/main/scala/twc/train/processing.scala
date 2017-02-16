@@ -16,7 +16,14 @@ import scala.collection.mutable
   */
 object processing {
 
-  //已分词文档,平衡集
+  /**
+    * 已分词文档,平衡集
+    * @param docs
+    * @param sc
+    * @param w2vModel
+    * @param modelSize
+    * @return
+    */
   def process_weight(docs:Array[String], sc: SparkContext, w2vModel: Word2VecModel, modelSize: Int) = {
 
     val docsTemp = docs.map(doc  => {
@@ -31,8 +38,9 @@ object processing {
       (label, keywordsFilter)
     })
 
-    val posCount = docsTemp.filter(_._1.equals("1.0")).length
-    val negCount = docsTemp.filter(_._1.equals("0.0")).length
+    //统计pos和neg的个数
+    val posCount = docsTemp.count(_._1.equals("1.0"))
+    val negCount = docsTemp.count(_._1.equals("0.0"))
 
     val result = docsTemp.map(doc => {
       val resultTemp = doc2vecWithModel_weight(doc._2, w2vModel, modelSize)
@@ -74,18 +82,24 @@ object processing {
 
   }
 
-  // 基于word2vec model 获取单文档词向量
-  private def doc2vecWithModel_weight(doc: Array[(String, Float)], model:Word2VecModel, modelSize: Int): Array[Double] = {
+  /**
+    * 基于word2vec model，构建单文档向量模型
+    * @param doc
+    * @param model 词向量模型
+    * @param vectorSize 词向量的长度
+    * @return
+    */
+  private def doc2vecWithModel_weight(doc: Array[(String, Float)], model:Word2VecModel, vectorSize: Int): Array[Double] = {
 
-    var resultTemp = new Array[Double](modelSize)
-    var wordTemp = new Array[Double](modelSize)
+    var resultTemp = new Array[Double](vectorSize)
+    var wordTemp = new Array[Double](vectorSize)
 
     doc.foreach(word => {
       try {
         wordTemp = model.transform(word._1).toArray
       }
       catch {
-        case e: Exception => wordTemp = Vector.zeros[Double](modelSize).toArray
+        case e: Exception => wordTemp = Vector.zeros[Double](vectorSize).toArray
       }
 
       for (i <- resultTemp.indices){

@@ -10,6 +10,7 @@ import utils.{DirectoryUtil, JSONUtil}
 
 /**
   * Created by li on 2016/10/13.
+  * 分类模型训练程序。
   *
   */
 object ClassifyModel {
@@ -108,20 +109,18 @@ object ClassifyModel {
     val conf = new SparkConf().setAppName("textVectors").setMaster("local")
     val sc = new SparkContext(conf)
 
-    val jsonPath = "/Users/li/workshop/MyRepository/Word2Vec/src/main/scala/twc/W2VJsonConf.json"
-
-    JSONUtil.initConfig(jsonPath)
-
     val word2vecModelPath = JSONUtil.getValue("w2v", "w2vmodelPath")
-    val modelSize = JSONUtil.getValue("w2v", "w2vmodelSize").toInt
+    //向量的长度
+    val vectorSize = JSONUtil.getValue("w2v", "w2vmodelSize").toInt
+    //是否是模型
     val isModel = JSONUtil.getValue("w2v", "isModel").toBoolean
-
+    //导入word2vec模型
     val w2vModel = Word2VecModel.load(sc, word2vecModelPath)
 
     // 构建训练集的labeledpoint格式
     // val trainSetPath = "/Users/li/workshop/DataSet/trainingsetUnbalance/BXX.txt"
      val trainSetPath = "/Users/li/workshop/DataSet/trainingSets/计算机"
-//    val trainSetPath = "/Users/li/workshop/DataSet/trainingSets/机械"
+    // val trainSetPath = "/Users/li/workshop/DataSet/trainingSets/机械"
 
     val trainSet = DataPrepare.readData(trainSetPath)
       .map { row =>
@@ -130,19 +129,19 @@ object ClassifyModel {
       }
 
     val trainData = trainSet.map{row =>{
-      TextVectors.textVectorsWithWeight(row, w2vModel, modelSize, isModel)
+      TextVectors.textVectorsWithWeight(row, w2vModel, vectorSize, isModel)
     }}
 
     val trainDataRdd = sc.parallelize(trainData)
     val classifyModel = classify(trainDataRdd)
 
-    val classifyModelPath = JSONUtil.getValue("classify", "classifymodelpath")
+    val classifyModelPath = JSONUtil.getValue("classifyw2v", "modelParentPath_SVM")
     DirectoryUtil.deleteDir(new File(classifyModelPath))
     classifyModel.save(sc, classifyModelPath)
 
     // 准确度统计分析
     //predictionAndLabel.foreach(println)
-    println("分类模型保存完毕。")
+    println("==分类模型保存完毕==")
 
     sc.stop()
   }

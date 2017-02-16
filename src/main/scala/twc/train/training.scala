@@ -12,12 +12,12 @@ import org.apache.spark.{SparkConf, SparkContext}
 /**
   * Created by zhangxin on 16-11-9.
   *
-  * 分类模型训练
+  * twc分类模型训练程序。
   */
 object training {
 
   /**
-    * 批量训练模型
+    * 批量训练模型，使用
     */
   def training_SVM(): Unit ={
 
@@ -35,7 +35,6 @@ object training {
     val w2vModel = Word2VecModel.load(sc, modelPath)
 
     // 平衡集
-
     val docsParentPath = jsonconf.getValue("classifyw2v", "dataSets")
     val docsAll = sc.wholeTextFiles(docsParentPath).collect()
 
@@ -93,8 +92,8 @@ object training {
 
     val conf = new SparkConf().setAppName("W2V").setMaster("local")
     val sc = new SparkContext(conf)
-    val jsonPath = "/home/zhangxin/work/workplace_scala/Sentiment/src/main/scala/classificationW2V/W2VJsonConf.json"
-
+    // val jsonPath = "/home/zhangxin/work/workplace_scala/Sentiment/src/main/scala/classificationW2V/W2VJsonConf.json"
+    val jsonPath = "/Users/li/workshop/MyRepository/Word2Vec/src/main/scala/twc/W2VJsonConf.json"
     val jsonconf = new JsonConfig
     jsonconf.initConfig(jsonPath)
 
@@ -122,7 +121,7 @@ object training {
 
       val (data, posCount, negCount) = processing.process_weight_beyes(docs._2.split("\n"), sc, w2vModel, modelSize)
 
-      println("[模型] "+ count+"[完成DOC2Vec模型]>>>>>>>>>>>>>>>>>")
+      println("[模型] "+ count +"[完成DOC2Vec模型]>>>>>>>>>>>>>>>>>")
 
       val dataRdd = sc.parallelize(data)
       val splits = dataRdd.randomSplit(Array(0.8, 0.2), seed = 11L)
@@ -164,7 +163,6 @@ object training {
     val conf = new SparkConf().setAppName("W2V").setMaster("local")
     val sc = new SparkContext(conf)
     val jsonPath = "/home/zhangxin/work/workplace_scala/Sentiment/src/main/scala/classificationW2V/W2VJsonConf.json"
-
 
     val jsonconf = new JsonConfig
     jsonconf.initConfig(jsonPath)
@@ -224,7 +222,6 @@ object training {
 
   def main(args: Array[String]): Unit = {
     training_bayes()
-
   }
 
 }

@@ -6,7 +6,9 @@ import utils.{AnsjAnalyzer, JSONUtil}
 
 /**
   * Created by li on 2016/10/17.
+  * 分类预测模型程序主体，与ClassifyModel相对应。
   */
+
 object ClassifyPredict {
 
   def predict: Unit ={
@@ -14,15 +16,10 @@ object ClassifyPredict {
   }
 
 
-
   def main(args: Array[String]) {
 
     val conf = new SparkConf().setAppName("textVectors").setMaster("local")
     val sc = new SparkContext(conf)
-
-    val jsonPath = "/home/zhangxin/work/workplace_scala/Sentiment/src/main/scala/classificationW2V/W2VJsonConf.json"
-
-    JSONUtil.initConfig(jsonPath)
 
     // load word2vec model
     val word2vecModelPath = JSONUtil.getValue("w2v", "w2vmodelPath")
@@ -31,8 +28,8 @@ object ClassifyPredict {
     val w2vModel = Word2VecModel.load(sc, word2vecModelPath)
 
     // load classify model
-//    val classifyModelPath = JSONUtil.getValue("classifyw2v", "modelParentPath_SVM")
-    val classifyModelPath = "/home/zhangxin/work/workplace_scala/Data/classificaiton_model/32_正式可用_SVM/保险.model"
+    val classifyModelPath = JSONUtil.getValue("classifyw2v", "modelParentPath_SVM")
+    //    val classifyModelPath = "/home/zhangxin/work/workplace_scala/Data/classificaiton_model/32_正式可用_SVM/保险.model"
     val classifyModel = SVMModel.load(sc, classifyModelPath)
 
     // stopWords load

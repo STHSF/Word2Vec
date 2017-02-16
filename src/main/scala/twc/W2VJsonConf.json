@@ -11,8 +11,8 @@
   },
   "classifyw2v": {
     "modelParentPath_SVM": "/Users/li/workshop/MyRepository/Word2Vec/src/main/scala/classifymodel",
-    "modelParentPath_bayes": "/home/zhangxin/work/workplace_scala/Data/classificaiton_model/30_正式可用_bayes/",
-    "dataSets": "/home/zhangxin/work/workplace_scala/Data/trainingSets (30)/"
+    "modelParentPath_bayes": "/Users/li/workshop/DataSet/classificaiton_model/30_正式可用_bayes/",
+    "dataSets": "/Users/li/workshop/DataSet/trainingSets/"
   },
   "textrank": {
     "testpath": "/Users/li/workshop/DataSet/textRankTestData/textRankTest2.txt"
